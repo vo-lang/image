@@ -1,0 +1,85 @@
+package image
+
+import "encoding/json"
+
+type Image struct {
+ID uint32 `json:"id"`
+}
+
+func Open(path string) (Image, error) {
+req, _ := json.Marshal(struct {
+Path string `json:"path"`
+}{path})
+resp, err := RawCall("open", string(req))
+if err != nil {
+return Image{}, err
+}
+var out Image
+if err = json.Unmarshal(resp, &out); err != nil {
+return Image{}, err
+}
+return out, nil
+}
+
+func NewRGBA(width int, height int) (Image, error) {
+req, _ := json.Marshal(struct {
+Width  int `json:"width"`
+Height int `json:"height"`
+}{width, height})
+resp, err := RawCall("new_rgba", string(req))
+if err != nil {
+return Image{}, err
+}
+var out Image
+if err = json.Unmarshal(resp, &out); err != nil {
+return Image{}, err
+}
+return out, nil
+}
+
+func (img Image) Resize(width int, height int) error {
+req, _ := json.Marshal(struct {
+ID     uint32 `json:"id"`
+Width  int    `json:"width"`
+Height int    `json:"height"`
+}{img.ID, width, height})
+_, err := RawCall("resize", string(req))
+return err
+}
+
+func (img Image) Save(path string) error {
+req, _ := json.Marshal(struct {
+ID   uint32 `json:"id"`
+Path string `json:"path"`
+}{img.ID, path})
+_, err := RawCall("save", string(req))
+return err
+}
+
+func (img Image) Dimensions() (int, int, error) {
+req, _ := json.Marshal(struct {
+ID uint32 `json:"id"`
+}{img.ID})
+resp, err := RawCall("dimensions", string(req))
+if err != nil {
+return 0, 0, err
+}
+var out struct {
+Width  int `json:"width"`
+Height int `json:"height"`
+}
+if err = json.Unmarshal(resp, &out); err != nil {
+return 0, 0, err
+}
+return out.Width, out.Height, nil
+}
+
+func (img Image) Close() error {
+req, _ := json.Marshal(struct {
+ID uint32 `json:"id"`
+}{img.ID})
+_, err := RawCall("close", string(req))
+return err
+}
+
+func RawCall(op string, input string) ([]byte, error)
