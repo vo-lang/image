@@ -3,83 +3,140 @@ package image
 import "encoding/json"
 
 type Image struct {
-ID uint32 `json:"id"`
+    ID uint32 `json:"id"`
+}
+
+type Size struct {
+    Width  int `json:"width"`
+    Height int `json:"height"`
+}
+
+type idReq struct {
+    ID uint32 `json:"id"`
+}
+
+func marshalReq(v any) (string, error) {
+    b, err := json.Marshal(v)
+    if err != nil {
+        return "", err
+    }
+    return string(b), nil
 }
 
 func Open(path string) (Image, error) {
-req, _ := json.Marshal(struct {
-Path string `json:"path"`
-}{path})
-resp, err := RawCall("open", string(req))
-if err != nil {
-return Image{}, err
-}
-var out Image
-if err = json.Unmarshal(resp, &out); err != nil {
-return Image{}, err
-}
-return out, nil
+    req, err := marshalReq(struct {
+        Path string `json:"path"`
+    }{path})
+    if err != nil {
+        return Image{}, err
+    }
+    resp, err := RawCall("open", req)
+    if err != nil {
+        return Image{}, err
+    }
+    var out Image
+    if err = json.Unmarshal(resp, &out); err != nil {
+        return Image{}, err
+    }
+    return out, nil
 }
 
 func NewRGBA(width int, height int) (Image, error) {
-req, _ := json.Marshal(struct {
-Width  int `json:"width"`
-Height int `json:"height"`
-}{width, height})
-resp, err := RawCall("new_rgba", string(req))
-if err != nil {
-return Image{}, err
-}
-var out Image
-if err = json.Unmarshal(resp, &out); err != nil {
-return Image{}, err
-}
-return out, nil
+    req, err := marshalReq(struct {
+        Width  int `json:"width"`
+        Height int `json:"height"`
+    }{width, height})
+    if err != nil {
+        return Image{}, err
+    }
+    resp, err := RawCall("new_rgba", req)
+    if err != nil {
+        return Image{}, err
+    }
+    var out Image
+    if err = json.Unmarshal(resp, &out); err != nil {
+        return Image{}, err
+    }
+    return out, nil
 }
 
 func (img Image) Resize(width int, height int) error {
-req, _ := json.Marshal(struct {
-ID     uint32 `json:"id"`
-Width  int    `json:"width"`
-Height int    `json:"height"`
-}{img.ID, width, height})
-_, err := RawCall("resize", string(req))
-return err
+    req, err := marshalReq(struct {
+        ID     uint32 `json:"id"`
+        Width  int    `json:"width"`
+        Height int    `json:"height"`
+    }{img.ID, width, height})
+    if err != nil {
+        return err
+    }
+    _, err = RawCall("resize", req)
+    return err
+}
+
+func (img Image) Thumbnail(width int, height int) error {
+    req, err := marshalReq(struct {
+        ID     uint32 `json:"id"`
+        Width  int    `json:"width"`
+        Height int    `json:"height"`
+    }{img.ID, width, height})
+    if err != nil {
+        return err
+    }
+    _, err = RawCall("thumbnail", req)
+    return err
 }
 
 func (img Image) Save(path string) error {
-req, _ := json.Marshal(struct {
-ID   uint32 `json:"id"`
-Path string `json:"path"`
-}{img.ID, path})
-_, err := RawCall("save", string(req))
-return err
+    req, err := marshalReq(struct {
+        ID   uint32 `json:"id"`
+        Path string `json:"path"`
+    }{img.ID, path})
+    if err != nil {
+        return err
+    }
+    _, err = RawCall("save", req)
+    return err
+}
+
+func (img Image) EncodePNG() ([]byte, error) {
+    req, err := marshalReq(idReq{img.ID})
+    if err != nil {
+        return nil, err
+    }
+    return RawCall("encode_png", req)
+}
+
+func (img Image) Size() (Size, error) {
+    req, err := marshalReq(idReq{img.ID})
+    if err != nil {
+        return Size{}, err
+    }
+    resp, err := RawCall("dimensions", req)
+    if err != nil {
+        return Size{}, err
+    }
+    var out Size
+    if err = json.Unmarshal(resp, &out); err != nil {
+        return Size{}, err
+    }
+    return out, nil
 }
 
 func (img Image) Dimensions() (int, int, error) {
-req, _ := json.Marshal(struct {
-ID uint32 `json:"id"`
-}{img.ID})
-resp, err := RawCall("dimensions", string(req))
-if err != nil {
-return 0, 0, err
-}
-var out struct {
-Width  int `json:"width"`
-Height int `json:"height"`
-}
-if err = json.Unmarshal(resp, &out); err != nil {
-return 0, 0, err
-}
-return out.Width, out.Height, nil
+    sz, err := img.Size()
+    if err != nil {
+        return 0, 0, err
+    }
+    return sz.Width, sz.Height, nil
 }
 
 func (img Image) Close() error {
-req, _ := json.Marshal(struct {
-ID uint32 `json:"id"`
-}{img.ID})
-_, err := RawCall("close", string(req))
-return err
+    req, err := marshalReq(idReq{img.ID})
+    if err != nil {
+        return err
+    }
+    _, err = RawCall("close", req)
+    return err
 }
 
 func RawCall(op string, input string) ([]byte, error)

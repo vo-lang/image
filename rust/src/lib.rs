@@ -2,10 +2,11 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Mutex;
 
-use image::DynamicImage;
+use image::{DynamicImage, ImageFormat};
 use lazy_static::lazy_static;
 use serde::Deserialize;
 use serde_json::json;
+use std::io::Cursor;
 
 #[cfg(feature = "native")]
 mod native {
@@ -48,6 +49,26 @@ mod native {
         id: u32,
     }
 
+    fn empty_ok() -> Result<Vec<u8>, String> {
+        Ok(Vec::new())
+    }
+
+    fn get_image<'a>(
+        map: &'a HashMap<u32, DynamicImage>,
+        id: u32,
+    ) -> Result<&'a DynamicImage, String> {
+        map.get(&id)
+            .ok_or_else(|| format!("invalid image id {}", id))
+    }
+
+    fn get_image_mut<'a>(
+        map: &'a mut HashMap<u32, DynamicImage>,
+        id: u32,
+    ) -> Result<&'a mut DynamicImage, String> {
+        map.get_mut(&id)
+            .ok_or_else(|| format!("invalid image id {}", id))
+    }
+
     fn insert_image(img: DynamicImage) -> Result<Vec<u8>, String> {
         let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
         let mut map = IMAGES
@@ -74,13 +95,22 @@ mod native {
         let mut map = IMAGES
             .lock()
             .map_err(|_| "image lock poisoned".to_string())?;
-        let current = map
-            .remove(&req.id)
-            .ok_or_else(|| format!("invalid image id {}", req.id))?;
+        let current = get_image_mut(&mut map, req.id)?;
         let resized =
             current.resize_exact(req.width, req.height, image::imageops::FilterType::Lanczos3);
-        map.insert(req.id, resized);
-        Ok(Vec::new())
+        *current = resized;
+        empty_ok()
+    }
+
+    fn handle_thumbnail(input: &str) -> Result<Vec<u8>, String> {
+        let req: ResizeReq = serde_json::from_str(input).map_err(|e| e.to_string())?;
+        let mut map = IMAGES
+            .lock()
+            .map_err(|_| "image lock poisoned".to_string())?;
+        let current = get_image_mut(&mut map, req.id)?;
+        let thumb = current.thumbnail(req.width, req.height);
+        *current = thumb;
+        empty_ok()
     }
 
     fn handle_save(input: &str) -> Result<Vec<u8>, String> {
@@ -88,11 +118,22 @@ mod native {
         let map = IMAGES
             .lock()
             .map_err(|_| "image lock poisoned".to_string())?;
-        let img = map
-            .get(&req.id)
-            .ok_or_else(|| format!("invalid image id {}", req.id))?;
+        let img = get_image(&map, req.id)?;
         img.save(&req.path).map_err(|e| e.to_string())?;
-        Ok(Vec::new())
+        empty_ok()
+    }
+
+    fn handle_encode_png(input: &str) -> Result<Vec<u8>, String> {
+        let req: IdReq = serde_json::from_str(input).map_err(|e| e.to_string())?;
+        let map = IMAGES
+            .lock()
+            .map_err(|_| "image lock poisoned".to_string())?;
+        let img = get_image(&map, req.id)?;
+
+        let mut out = Cursor::new(Vec::new());
+        img.write_to(&mut out, ImageFormat::Png)
+            .map_err(|e| e.to_string())?;
+        Ok(out.into_inner())
     }
 
     fn handle_dimensions(input: &str) -> Result<Vec<u8>, String> {
@@ -100,9 +141,7 @@ mod native {
         let map = IMAGES
             .lock()
             .map_err(|_| "image lock poisoned".to_string())?;
-        let img = map
-            .get(&req.id)
-            .ok_or_else(|| format!("invalid image id {}", req.id))?;
+        let img = get_image(&map, req.id)?;
         serde_json::to_vec(&json!({ "width": img.width(), "height": img.height() }))
             .map_err(|e| e.to_string())
     }
@@ -114,7 +153,7 @@ mod native {
             .map_err(|_| "image lock poisoned".to_string())?;
         map.remove(&req.id)
             .ok_or_else(|| format!("invalid image id {}", req.id))?;
-        Ok(Vec::new())
+        empty_ok()
     }
 
     fn dispatch(op: &str, input: &str) -> Result<Vec<u8>, String> {
@@ -122,7 +161,9 @@ mod native {
             "open" => handle_open(input),
             "new_rgba" => handle_new_rgba(input),
             "resize" => handle_resize(input),
+            "thumbnail" => handle_thumbnail(input),
             "save" => handle_save(input),
+            "encode_png" => handle_encode_png(input),
             "dimensions" => handle_dimensions(input),
             "close" => handle_close(input),
             _ => Err(format!("unsupported operation: {op}")),
