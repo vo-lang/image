@@ -1,7 +1,5 @@
 package image
 
-import "encoding/json"
-
 type Image struct {
     ID uint32 `json:"id"`
 }
@@ -11,115 +9,44 @@ type Size struct {
     Height int `json:"height"`
 }
 
-type idReq struct {
-    ID uint32 `json:"id"`
-}
-
-func marshalReq(v any) (string, error) {
-    b, err := json.Marshal(v)
-    if err != nil {
-        return "", err
-    }
-    return string(b), nil
-}
-
 func Open(path string) (Image, error) {
-    req, err := marshalReq(struct {
-        Path string `json:"path"`
-    }{path})
+    id, err := nativeOpen(path)
     if err != nil {
         return Image{}, err
     }
-    resp, err := RawCall("open", req)
-    if err != nil {
-        return Image{}, err
-    }
-    var out Image
-    if err = json.Unmarshal(resp, &out); err != nil {
-        return Image{}, err
-    }
-    return out, nil
+    return Image{ID: id}, nil
 }
 
 func NewRGBA(width int, height int) (Image, error) {
-    req, err := marshalReq(struct {
-        Width  int `json:"width"`
-        Height int `json:"height"`
-    }{width, height})
+    id, err := nativeNewRGBA(width, height)
     if err != nil {
         return Image{}, err
     }
-    resp, err := RawCall("new_rgba", req)
-    if err != nil {
-        return Image{}, err
-    }
-    var out Image
-    if err = json.Unmarshal(resp, &out); err != nil {
-        return Image{}, err
-    }
-    return out, nil
+    return Image{ID: id}, nil
 }
 
 func (img Image) Resize(width int, height int) error {
-    req, err := marshalReq(struct {
-        ID     uint32 `json:"id"`
-        Width  int    `json:"width"`
-        Height int    `json:"height"`
-    }{img.ID, width, height})
-    if err != nil {
-        return err
-    }
-    _, err = RawCall("resize", req)
-    return err
+    return nativeResize(img.ID, width, height)
 }
 
 func (img Image) Thumbnail(width int, height int) error {
-    req, err := marshalReq(struct {
-        ID     uint32 `json:"id"`
-        Width  int    `json:"width"`
-        Height int    `json:"height"`
-    }{img.ID, width, height})
-    if err != nil {
-        return err
-    }
-    _, err = RawCall("thumbnail", req)
-    return err
+    return nativeThumbnail(img.ID, width, height)
 }
 
 func (img Image) Save(path string) error {
-    req, err := marshalReq(struct {
-        ID   uint32 `json:"id"`
-        Path string `json:"path"`
-    }{img.ID, path})
-    if err != nil {
-        return err
-    }
-    _, err = RawCall("save", req)
-    return err
+    return nativeSave(img.ID, path)
 }
 
 func (img Image) EncodePNG() ([]byte, error) {
-    req, err := marshalReq(idReq{img.ID})
-    if err != nil {
-        return nil, err
-    }
-    return RawCall("encode_png", req)
+    return nativeEncodePNG(img.ID)
 }
 
 func (img Image) Size() (Size, error) {
-    req, err := marshalReq(idReq{img.ID})
+    width, height, err := nativeSize(img.ID)
     if err != nil {
         return Size{}, err
     }
-    resp, err := RawCall("dimensions", req)
-    if err != nil {
-        return Size{}, err
-    }
-    var out Size
-    if err = json.Unmarshal(resp, &out); err != nil {
-        return Size{}, err
-    }
-    return out, nil
+    return Size{Width: width, Height: height}, nil
 }
 
 func (img Image) Dimensions() (int, int, error) {
@@ -131,12 +58,14 @@ func (img Image) Dimensions() (int, int, error) {
 }
 
 func (img Image) Close() error {
-    req, err := marshalReq(idReq{img.ID})
-    if err != nil {
-        return err
-    }
-    _, err = RawCall("close", req)
-    return err
+    return nativeClose(img.ID)
 }
 
-func RawCall(op string, input string) ([]byte, error)
+func nativeOpen(path string) (uint32, error)
+func nativeNewRGBA(width int, height int) (uint32, error)
+func nativeResize(id uint32, width int, height int) error
+func nativeThumbnail(id uint32, width int, height int) error
+func nativeSave(id uint32, path string) error
+func nativeEncodePNG(id uint32) ([]byte, error)
+func nativeSize(id uint32) (int, int, error)
+func nativeClose(id uint32) error
