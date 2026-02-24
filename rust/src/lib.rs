@@ -1,9 +1,15 @@
+#[cfg(feature = "native")]
 use std::collections::HashMap;
+#[cfg(feature = "native")]
 use std::io::Cursor;
+#[cfg(feature = "native")]
 use std::sync::atomic::{AtomicU32, Ordering};
+#[cfg(feature = "native")]
 use std::sync::Mutex;
 
+#[cfg(feature = "native")]
 use image::{DynamicImage, ImageFormat};
+#[cfg(feature = "native")]
 use lazy_static::lazy_static;
 
 #[cfg(feature = "native")]
@@ -426,7 +432,7 @@ mod standalone {
             if self.pos + 4 > self.buf.len() { return &[]; }
             let len = u32::from_le_bytes(self.buf[self.pos..self.pos + 4].try_into().unwrap()) as usize;
             self.pos += 4;
-            if self.pos + len > self.buf.len() { return &self.buf[self.pos..]; }
+            if self.pos + len > self.buf.len() { return &[]; }
             let data = &self.buf[self.pos..self.pos + len];
             self.pos += len;
             data
