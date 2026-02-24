@@ -1,5 +1,10 @@
 package image
 
+import (
+    "os"
+    "path/filepath"
+)
+
 type Image struct {
     ID uint32 `json:"id"`
 }
@@ -10,7 +15,15 @@ type Size struct {
 }
 
 func Open(path string) (Image, error) {
-    id, err := nativeOpen(path)
+    data, err := os.ReadFile(path)
+    if err != nil {
+        return Image{}, err
+    }
+    return OpenFromBytes(data)
+}
+
+func OpenFromBytes(data []byte) (Image, error) {
+    id, err := nativeOpenFromBytes(data)
     if err != nil {
         return Image{}, err
     }
@@ -34,7 +47,12 @@ func (img Image) Thumbnail(width int, height int) error {
 }
 
 func (img Image) Save(path string) error {
-    return nativeSave(img.ID, path)
+    ext := filepath.Ext(path)
+    data, err := nativeSaveToBytes(img.ID, ext)
+    if err != nil {
+        return err
+    }
+    return os.WriteFile(path, data, 0644)
 }
 
 func (img Image) EncodePNG() ([]byte, error) {
@@ -42,30 +60,31 @@ func (img Image) EncodePNG() ([]byte, error) {
 }
 
 func (img Image) Size() (Size, error) {
-    width, height, err := nativeSize(img.ID)
+    w, h, err := nativeSize(img.ID)
     if err != nil {
         return Size{}, err
     }
-    return Size{Width: width, Height: height}, nil
+    return Size{Width: w, Height: h}, nil
 }
 
 func (img Image) Dimensions() (int, int, error) {
-    sz, err := img.Size()
-    if err != nil {
-        return 0, 0, err
-    }
-    return sz.Width, sz.Height, nil
+    return nativeSize(img.ID)
 }
 
 func (img Image) Close() error {
     return nativeClose(img.ID)
 }
 
+// Native functions with natural signatures.
+// Open/Save use Vo-level VFS (os.ReadFile/WriteFile) for WASM compatibility;
+// nativeOpen and nativeSave are for native builds only.
 func nativeOpen(path string) (uint32, error)
+func nativeOpenFromBytes(data []byte) (uint32, error)
 func nativeNewRGBA(width int, height int) (uint32, error)
 func nativeResize(id uint32, width int, height int) error
 func nativeThumbnail(id uint32, width int, height int) error
 func nativeSave(id uint32, path string) error
+func nativeSaveToBytes(id uint32, ext string) ([]byte, error)
 func nativeEncodePNG(id uint32) ([]byte, error)
 func nativeSize(id uint32) (int, int, error)
 func nativeClose(id uint32) error

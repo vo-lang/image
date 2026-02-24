@@ -11,6 +11,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["native"]
 native = ["dep:linkme", "dep:vo-ext", "dep:vo-ffi-macro", "dep:vo-runtime", "vo-ext/native", "vo-runtime/std"]
+wasm-standalone = []
 
 [dependencies]
 image = "0.25"
@@ -21,5 +22,6 @@ vo-ext = { git = "https://github.com/vo-lang/volang", default-features = false, 
 vo-ffi-macro = { git = "https://github.com/vo-lang/volang", optional = true }
 vo-runtime = { git = "https://github.com/vo-lang/volang", default-features = false, optional = true }
 linkme = { version = "0.3", optional = true }
+
 
 [workspace]
