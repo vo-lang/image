@@ -710,10 +710,8 @@ dependencies = [
  "moxcms",
  "num-traits",
  "png",
- "qoi",
  "ravif",
  "rayon",
- "rgb",
  "tiff",
  "zune-core 0.5.1",
  "zune-jpeg 0.5.12",
@@ -1146,15 +1144,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7186d3822593aa4393561d186d1393b3923e9d6163d3fbfd6e825e3e6cf3e6a8"
 dependencies = [
  "num-traits",
-]
-
-[[package]]
-name = "qoi"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f6d64c71eb498fe9eae14ce4ec935c555749aef511cca85b5568910d6e48001"
-dependencies = [
- "bytemuck",
 ]
 
 [[package]]
@@ -1700,7 +1689,6 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 [[package]]
 name = "vo-common"
 version = "0.1.0"
-source = "git+https://github.com/vo-lang/volang#9082209042a63dd4ef9c5764ec2d79ae90807e15"
 dependencies = [
  "codespan-reporting",
  "rustc-hash",
@@ -1712,7 +1700,6 @@ dependencies = [
 [[package]]
 name = "vo-common-core"
 version = "0.1.0"
-source = "git+https://github.com/vo-lang/volang#9082209042a63dd4ef9c5764ec2d79ae90807e15"
 dependencies = [
  "hashbrown 0.15.5",
  "num_enum",
@@ -1722,7 +1709,6 @@ dependencies = [
 [[package]]
 name = "vo-ext"
 version = "0.1.0"
-source = "git+https://github.com/vo-lang/volang#9082209042a63dd4ef9c5764ec2d79ae90807e15"
 dependencies = [
  "linkme",
  "vo-ffi-macro",
@@ -1732,7 +1718,6 @@ dependencies = [
 [[package]]
 name = "vo-ffi-macro"
 version = "0.1.0"
-source = "git+https://github.com/vo-lang/volang#9082209042a63dd4ef9c5764ec2d79ae90807e15"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1759,7 +1744,6 @@ dependencies = [
 [[package]]
 name = "vo-module"
 version = "0.1.0"
-source = "git+https://github.com/vo-lang/volang#9082209042a63dd4ef9c5764ec2d79ae90807e15"
 dependencies = [
  "base64",
  "dirs",
@@ -1777,7 +1761,6 @@ dependencies = [
 [[package]]
 name = "vo-runtime"
 version = "0.1.0"
-source = "git+https://github.com/vo-lang/volang#9082209042a63dd4ef9c5764ec2d79ae90807e15"
 dependencies = [
  "dirs",
  "hashbrown 0.15.5",
@@ -1796,7 +1779,6 @@ dependencies = [
 [[package]]
 name = "vo-syntax"
 version = "0.1.0"
-source = "git+https://github.com/vo-lang/volang#9082209042a63dd4ef9c5764ec2d79ae90807e15"
 dependencies = [
  "logos",
  "num-bigint",
@@ -2274,3 +2256,27 @@ checksum = "410e9ecef634c709e3831c2cfdb8d9c32164fae1c67496d5b68fff728eec37fe"
 dependencies = [
  "zune-core 0.5.1",
 ]
+
+[[patch.unused]]
+name = "vo-analysis"
+version = "0.1.0"
+
+[[patch.unused]]
+name = "vo-codegen"
+version = "0.1.0"
+
+[[patch.unused]]
+name = "vo-engine"
+version = "0.1.0"
+
+[[patch.unused]]
+name = "vo-jit"
+version = "0.1.0"
+
+[[patch.unused]]
+name = "vo-stdlib"
+version = "0.1.0"
+
+[[patch.unused]]
+name = "vo-vm"
+version = "0.1.0"
