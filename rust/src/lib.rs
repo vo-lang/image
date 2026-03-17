@@ -155,7 +155,7 @@ mod native {
         Ok(())
     }
 
-    #[vo_fn("github.com/vo-lang/image", "nativeOpen")]
+    #[vo_fn("image", "nativeOpen")]
     pub fn native_open(call: &mut ExternCallContext) -> ExternResult {
         let path = call.arg_str(0);
         match open_impl(path) {
@@ -171,7 +171,7 @@ mod native {
         ExternResult::Ok
     }
 
-    #[vo_fn("github.com/vo-lang/image", "nativeOpenFromBytes")]
+    #[vo_fn("image", "nativeOpenFromBytes")]
     pub fn native_open_from_bytes(call: &mut ExternCallContext) -> ExternResult {
         let data = call.arg_bytes(0);
         match open_from_bytes_impl(data) {
@@ -187,7 +187,7 @@ mod native {
         ExternResult::Ok
     }
 
-    #[vo_fn("github.com/vo-lang/image", "nativeSaveToBytes")]
+    #[vo_fn("image", "nativeSaveToBytes")]
     pub fn native_save_to_bytes(call: &mut ExternCallContext) -> ExternResult {
         let id = call.arg_u64(0);
         let ext = call.arg_str(1);
@@ -205,7 +205,7 @@ mod native {
         ExternResult::Ok
     }
 
-    #[vo_fn("github.com/vo-lang/image", "nativeNewRGBA")]
+    #[vo_fn("image", "nativeNewRGBA")]
     pub fn native_new_rgba(call: &mut ExternCallContext) -> ExternResult {
         let width = call.arg_i64(0);
         let height = call.arg_i64(1);
@@ -222,7 +222,7 @@ mod native {
         ExternResult::Ok
     }
 
-    #[vo_fn("github.com/vo-lang/image", "nativeResize")]
+    #[vo_fn("image", "nativeResize")]
     pub fn native_resize(call: &mut ExternCallContext) -> ExternResult {
         let id = call.arg_u64(0);
         let width = call.arg_i64(1);
@@ -234,7 +234,7 @@ mod native {
         ExternResult::Ok
     }
 
-    #[vo_fn("github.com/vo-lang/image", "nativeThumbnail")]
+    #[vo_fn("image", "nativeThumbnail")]
     pub fn native_thumbnail(call: &mut ExternCallContext) -> ExternResult {
         let id = call.arg_u64(0);
         let width = call.arg_i64(1);
@@ -246,7 +246,7 @@ mod native {
         ExternResult::Ok
     }
 
-    #[vo_fn("github.com/vo-lang/image", "nativeSave")]
+    #[vo_fn("image", "nativeSave")]
     pub fn native_save(call: &mut ExternCallContext) -> ExternResult {
         let id = call.arg_u64(0);
         let path = call.arg_str(1);
@@ -257,7 +257,7 @@ mod native {
         ExternResult::Ok
     }
 
-    #[vo_fn("github.com/vo-lang/image", "nativeEncodePNG")]
+    #[vo_fn("image", "nativeEncodePNG")]
     pub fn native_encode_png(call: &mut ExternCallContext) -> ExternResult {
         let id = call.arg_u64(0);
         match encode_png_impl(id) {
@@ -274,7 +274,7 @@ mod native {
         ExternResult::Ok
     }
 
-    #[vo_fn("github.com/vo-lang/image", "nativeSize")]
+    #[vo_fn("image", "nativeSize")]
     pub fn native_size(call: &mut ExternCallContext) -> ExternResult {
         let id = call.arg_u64(0);
         match size_impl(id) {
@@ -292,7 +292,7 @@ mod native {
         ExternResult::Ok
     }
 
-    #[vo_fn("github.com/vo-lang/image", "nativeClose")]
+    #[vo_fn("image", "nativeClose")]
     pub fn native_close(call: &mut ExternCallContext) -> ExternResult {
         let id = call.arg_u64(0);
         match close_impl(id) {
