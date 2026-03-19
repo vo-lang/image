@@ -1,3 +1,7 @@
 [extension]
 name = "image"
 path = "rust/target/{profile}/libvo_image"
+
+[extension.wasm]
+type = "standalone"
+wasm = "image.wasm"
